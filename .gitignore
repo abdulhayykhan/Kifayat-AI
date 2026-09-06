@@ -41,6 +41,5 @@ Thumbs.db
 # Vercel
 .vercel/
 
-# History files (too large for git, bundled fallback is enough)
+# Local history files (not deployed, Vercel uses api/data/history/)
 backend/data/history/
-api/data/history/

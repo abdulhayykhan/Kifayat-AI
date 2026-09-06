@@ -12,11 +12,12 @@
 
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-Frontend-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-Styling-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![SQLite](https://img.shields.io/badge/SQLite-Storage-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-![Vanilla JS](https://img.shields.io/badge/Frontend-HTML%20%2F%20CSS%20%2F%20Vanilla%20JS-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![Data Source](https://img.shields.io/badge/Data-Pakistan%20Bureau%20of%20Statistics-2E8B57?style=for-the-badge)
-![Status](https://img.shields.io/badge/status-hackathon--demo--candidate-orange?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=opensourceinitiative&logoColor=white)
 
 ---
 
@@ -58,9 +59,9 @@ Today, a small *dhaba* operator or home-chef finds out flour or cooking oil got 
 - Unmatched queries get an honest fallback listing exactly which staples are supported, instead of a confident-sounding wrong guess.
 
 ### 🔁 Three-Layer Data Reliability
-1. **Live fetch** — on startup and every Friday evening (PKT), the backend discovers that week's PBS release page and downloads the Annexure Excel file directly.
-2. **Local cache** — every successfully fetched week is saved to `backend/data/history/` and reused if a later live fetch fails.
-3. **Bundled fallback workbook** — a real, previously-downloaded PBS Annexure ships in the repo, so the app has genuine data to show even fully offline.
+1. **Live fetch** — on startup (local) or every cold start (Vercel), the backend scrapes the PBS release page and downloads the latest Annexure Excel file directly. On Vercel, this means data auto-updates each week when PBS publishes new prices.
+2. **Local cache** — every successfully fetched week is saved to `backend/data/history/` (local) or `/tmp/history/` (Vercel) and reused if a later live fetch fails.
+3. **Bundled fallback workbook** — a real, previously-downloaded PBS Annexure ships in the repo, so the app has genuine data to show even fully offline. On Vercel, 8 real historical weeks ship with the function in `api/data/history/` for genuine multi-week trend calculations.
 - The API surfaces which layer served the current data (`"source": "live" | "fallback_cached" | "manual_upload"`) on every relevant response, and the frontend shows this plainly as a badge rather than pretending everything is always live.
 
 ### 🛠️ Manual Data Recovery Path
@@ -72,11 +73,11 @@ Today, a small *dhaba* operator or home-chef finds out flour or cooking oil got 
 ## 🏗️ Architecture
 
 ```text
-┌──────────────────┐       ┌───────────────────────────┐       ┌────────────────┐
+┌─────────────┐        ┌─────────────────────┐        ┌────────────┐
 │  Frontend (SPA)  │─────▶│  FastAPI Backend           │─────▶│  SQLite DB     │
 │  HTML/CSS/JS     │◀─────│  ingestion · volatility ·  │◀─────│  prices + meta │
-│  no build step   │       │  Roman Urdu NLU · scheduler│      └────────────────┘
-└──────────────────┘       └───────────────────────────┘
+│  no build step   │        │  Roman Urdu NLU · scheduler│         └────────────┘
+└─────────────┘        └─────────────────────┘
                                        │
                                        ▼
                      Pakistan Bureau of Statistics
@@ -132,32 +133,55 @@ For each of the 13 tracked staples, `app/analytics/volatility.py` computes:
 
 ```text
 kifayat-ai/
-├── backend/
-│   ├── app/
-│   │   ├── main.py                 FastAPI app, route registration, refresh scheduler
-│   │   ├── config.py               Target items, PBS URLs, city constant
-│   │   ├── models.py               SQLAlchemy models: Price, DatasetMeta
-│   │   ├── db.py                   Engine/session setup
+├── api/                              Vercel serverless function entry point
+│   ├── index.py                      Entry point: sets env, adds api/ to sys.path, seeds DB
+│   ├── requirements.txt              Vercel-specific dependencies (includes httpx)
+│   ├── app/                          Full app copy (deployed to Vercel)
+│   │   ├── main.py                   FastAPI app, _init_db(), all routes
+│   │   ├── config.py                 Paths, IS_VERCEL detection, PBS_SPI_URL
+│   │   ├── models.py                 SQLAlchemy models: Price, DatasetMeta
+│   │   ├── db.py                     In-memory SQLite with StaticPool (Vercel)
 │   │   ├── ingestion/
-│   │   │   ├── discover.py         Finds the current week's PBS page + Annexure link
-│   │   │   ├── parse_excel.py      Normalizes the real PBS workbook into Karachi price rows
-│   │   │   └── seed_fallback.py    Loads cached history + bundled fallback workbook
+│   │   │   ├── discover.py           Scrapes PBS site for annexure link, downloads to /tmp on Vercel
+│   │   │   ├── parse_excel.py        Finds Karachi column dynamically, parses real PBS workbook
+│   │   │   └── seed_fallback.py      Seeds DB from history files + bundled fallback workbook
 │   │   ├── analytics/
-│   │   │   └── volatility.py       % change, trend, volatility score, buy/wait verdict
+│   │   │   └── volatility.py         % change, direction, volatility score, buy/wait verdict
 │   │   └── nlu/
-│   │       └── roman_urdu.py       Keyword/alias matcher for Roman Urdu + English queries
+│   │       └── roman_urdu.py         Keyword/alias matcher for Roman Urdu + English queries
+│   └── data/
+│       ├── fallback_sample.xlsx      Bundled PBS Annexure (deployed with function)
+│       └── history/                  8 real PBS weeks for genuine trend calculations
+├── backend/                          Local dev copy (not deployed to Vercel)
+│   ├── app/
+│   │   ├── main.py                   FastAPI app, APScheduler weekly refresh
+│   │   ├── config.py                 Target items, PBS URLs, city constant
+│   │   ├── models.py                 SQLAlchemy models: Price, DatasetMeta
+│   │   ├── db.py                     SQLite file-based engine
+│   │   ├── ingestion/
+│   │   │   ├── discover.py           Finds current week's PBS page + Annexure link
+│   │   │   ├── parse_excel.py        Normalizes real PBS workbook into Karachi price rows
+│   │   │   └── seed_fallback.py      Loads cached history + bundled fallback workbook
+│   │   ├── analytics/
+│   │   │   └── volatility.py         % change, trend, volatility score, buy/wait verdict
+│   │   └── nlu/
+│   │       └── roman_urdu.py         Keyword/alias matcher for Roman Urdu + English queries
 │   ├── data/
-│   │   ├── fallback_sample.xlsx    A real downloaded PBS Annexure, committed to the repo
-│   │   └── history/                8 weeks of real, previously-fetched PBS Annexures
+│   │   ├── fallback_sample.xlsx      A real downloaded PBS Annexure
+│   │   └── history/                  Weeks of real, previously-fetched PBS Annexures
 │   ├── tests/
-│   │   └── test_core.py            Parser + NLU regression tests
+│   │   └── test_core.py              Parser + NLU regression tests (15 passing)
 │   └── requirements.txt
 ├── frontend/
-│   ├── index.html
-│   ├── styles.css
-│   └── app.js
+│   ├── index.html                    Single-page app: chat view + dashboard grid
+│   ├── styles.css                    Responsive layout, dark mode, accessibility
+│   └── app.js                        fetch-based API calls, SVG sparklines, DOM rendering
+├── vercel.json                       Vercel config: outputDirectory, /api/* rewrites
+├── requirements.txt                  Root dependencies
 └── README.md
 ```
+
+> **Note:** `backend/` and `api/` contain the same app code. `backend/` is the local dev copy; `api/` is the Vercel-deployed copy with Vercel-specific adaptations (in-memory SQLite, `/tmp` filesystem, `StaticPool`, `index.py` entry point).
 
 ---
 
@@ -213,7 +237,8 @@ Specific, checkable facts about the underlying dataset — verified directly aga
 
 - PBS's Weekly Sensitive Price Indicator (SPI) covers **51 essential items across 50 markets in 17 cities nationally** — a national indicator, confirmed from PBS's own Price Statistics page.
 - Karachi is **one averaged price column** within that national dataset (city block `"Karachi (10)"` in the real Annexure layout), not a separately-reported multi-market breakdown inside the spreadsheet — the parser extracts this single averaged column per item.
-- All 8 weeks of history bundled in `backend/data/history/` (16 Jul – 3 Sep 2026) were confirmed, by direct inspection, to be genuine PBS Annexure files that parse into real Karachi prices for all 13 target items — not synthetic or placeholder data.
+- All weeks of history bundled in `backend/data/history/` were confirmed, by direct inspection, to be genuine PBS Annexure files that parse into real Karachi prices for all 13 target items — not synthetic or placeholder data.
+- **Live data verified:** All 13 item prices from the live PBS fetch match the published `Annex_03.09.2026.xlsx` exactly (to the decimal).
 - **Not independently verified to a precise figure:** any specific claim about the exact number of physical markets sampled within Karachi city (as opposed to the single averaged price PBS publishes for it). Avoid stating a specific market count as a hard fact without opening a fresh Annexure and checking PBS's current methodology note.
 
 ---
@@ -233,7 +258,7 @@ This section is kept current deliberately, matched against the actual code — n
 - `pytest` and `httpx` included in `requirements.txt` — full dev setup from a single install command.
 
 **Deployment status:**
-- **Vercel:** Frontend served as static files, API as a Python serverless function with in-memory SQLite. Data reloads from the bundled fallback on each cold start. Deploy with `vercel --prod`.
+- **Vercel:** Frontend served as static files, API as a Python serverless function with in-memory SQLite. Data auto-updates on every cold start — fetches the latest PBS annexure directly from pbs.gov.pk. Deploy with `vercel --prod`.
 - **Local:** SQLite file + in-process APScheduler for weekly refresh.
 
 ---
@@ -246,7 +271,7 @@ vercel login
 vercel --prod
 ```
 
-Vercel serves the frontend as static files and the API as a Python serverless function. The database is in-memory — data reloads from the bundled `fallback_sample.xlsx` on each cold start.
+Vercel serves the frontend as static files and the API as a Python serverless function. The database is in-memory — on each cold start, the app first seeds from the bundled fallback (instant), then fetches the latest PBS data live from pbs.gov.pk. PBS publishes weekly SPI every Friday, so the next cold start after a new release automatically picks up the new week's prices.
 
 **Vercel limitations:** Ephemeral filesystem (no SQLite persistence), no background scheduler (use Vercel Cron or external cron hitting `/api/admin/refresh`), manual upload disabled (use `/api/admin/refresh` instead).
 

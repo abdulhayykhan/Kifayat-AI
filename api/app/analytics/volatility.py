@@ -66,7 +66,20 @@ def item_summary(db: Session, item: str) -> dict | None:
 
     prices = [point["price"] for point in history]
     current = prices[-1]
-    pct_1w = _pct_change(current, prices[-2]) if len(prices) >= 2 else 0.0
+
+    if len(prices) < 2:
+        return {
+            "item": item,
+            "current_price": current,
+            "unit": history[-1]["unit"],
+            "pct_change_1w": 0.0,
+            "direction": "flat",
+            "volatility_score": 0.0,
+            "verdict": "Insufficient data — need at least 2 weeks",
+            "history": history,
+        }
+
+    pct_1w = _pct_change(current, prices[-2])
     weekly_changes = [_pct_change(prices[i], prices[i - 1]) for i in range(1, len(prices))]
     trend = _trend(prices)
 

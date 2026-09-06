@@ -1,5 +1,4 @@
-import random
-from datetime import datetime, date, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import func, select
@@ -7,22 +6,6 @@ from sqlalchemy import func, select
 from ..config import FALLBACK_FILE, HISTORY_DIR
 from ..models import DatasetMeta, Price
 from .parse_excel import parse_annexure
-
-_PREV_WEEK_VARIATIONS = {
-    "Wheat Flour": 0.02,
-    "Sugar": -0.03,
-    "Cooking Oil": 0.01,
-    "Vegetable Ghee": -0.01,
-    "Pulses Moong": 0.02,
-    "Pulses Mash": -0.02,
-    "Pulses Gram": 0.01,
-    "Rice Basmati Broken": -0.01,
-    "Rice IRRI-6": 0.01,
-    "Milk Fresh": -0.02,
-    "LPG (Cylinder)": 0.01,
-    "Onions": 0.05,
-    "Tomatoes": -0.04,
-}
 
 
 def _upsert(db, record: dict) -> None:
@@ -74,32 +57,6 @@ def seed_fallback(db) -> int:
             "No price data loaded — history files and fallback workbook "
             f"did not yield any records. Check {HISTORY_DIR} and {FALLBACK_FILE}"
         )
-
-    week_count = db.scalar(
-        select(func.count(func.distinct(Price.week_ending)))
-    ) or 0
-
-    if week_count < 2:
-        latest = db.scalar(select(func.max(Price.week_ending)))
-        prev_week = latest - timedelta(days=7)
-        exists = db.scalar(
-            select(func.count(Price.id)).where(Price.week_ending == prev_week)
-        )
-        if not exists:
-            current = db.scalars(
-                select(Price).where(Price.week_ending == latest)
-            ).all()
-            for row in current:
-                pct = _PREV_WEEK_VARIATIONS.get(row.item, 0.0)
-                prev_price = round(row.price * (1 - pct), 2)
-                db.add(Price(
-                    week_ending=prev_week,
-                    item=row.item,
-                    city=row.city,
-                    unit=row.unit,
-                    price=prev_price,
-                ))
-            db.flush()
 
     latest_week = db.scalar(select(func.max(Price.week_ending)))
     meta = db.get(DatasetMeta, 1) or DatasetMeta(id=1)
