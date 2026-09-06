@@ -1,11 +1,14 @@
 from __future__ import annotations
+import os
 import re
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
-from ..config import HISTORY_DIR, PBS_SPI_FALLBACK_URLS, PBS_SPI_URL
+from ..config import PBS_SPI_FALLBACK_URLS, PBS_SPI_URL
+
+_IS_VERCEL = os.getenv("VERCEL", "").lower() in ("1", "true", "yes")
 
 
 def _find_annexure_link(soup: BeautifulSoup, base_url: str) -> str | None:
@@ -59,10 +62,19 @@ def discover_latest() -> tuple[str, str, datetime.date]:
     return annexure, report or "", week
 
 
+def _history_dir() -> Path:
+    if _IS_VERCEL:
+        tmp = Path("/tmp/history")
+        tmp.mkdir(parents=True, exist_ok=True)
+        return tmp
+    from ..config import HISTORY_DIR
+    return HISTORY_DIR
+
+
 def download_latest() -> Path:
     url, _, week = discover_latest()
-    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
-    target = HISTORY_DIR / f"{week.isoformat()}.xlsx"
+    history = _history_dir()
+    target = history / f"{week.isoformat()}.xlsx"
     payload = requests.get(url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
     payload.raise_for_status()
     target.write_bytes(payload.content)
