@@ -26,13 +26,18 @@ class QueryRequest(BaseModel):
 
 
 def _init_db():
+    """Create tables and seed fallback data. Safe to call multiple times."""
     global _initialized
     if _initialized:
         return
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        refresh(db)
+        existing = db.scalar(select(DatasetMeta))
+        if not existing:
+            seed_fallback(db)
+    except Exception:
+        pass
     finally:
         db.close()
     _initialized = True
@@ -69,8 +74,6 @@ def refresh(db: Optional[Session] = None) -> dict:
 
 
 if IS_VERCEL:
-    from fastapi import Request
-
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         _init_db()
