@@ -13,6 +13,7 @@ from .db import IN_MEMORY, Base, engine, SessionLocal, get_db
 from .models import DatasetMeta
 from .ingestion.seed_fallback import seed_fallback, _upsert
 from .ingestion.parse_excel import parse_annexure
+from .ingestion.discover import download_latest
 from .analytics.volatility import all_summaries, item_summary
 from .nlu.roman_urdu import match_items
 from .config import CORS_ORIGINS, HISTORY_DIR, IS_VERCEL, MAX_UPLOAD_MB
@@ -40,6 +41,27 @@ def _init_db():
         pass
     finally:
         db.close()
+
+    if IS_VERCEL:
+        db = SessionLocal()
+        try:
+            meta = db.get(DatasetMeta, 1)
+            path = download_latest()
+            records = parse_annexure(path)
+            for record in records:
+                _upsert(db, record)
+            if not meta:
+                meta = DatasetMeta(id=1)
+            meta.source = "live"
+            meta.week_ending = records[0]["week_ending"]
+            meta.updated_at = datetime.now(timezone.utc)
+            db.merge(meta)
+            db.commit()
+        except Exception:
+            pass
+        finally:
+            db.close()
+
     _initialized = True
 
 
