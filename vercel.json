@@ -2,10 +2,7 @@
   "builds": [
     {
       "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxDuration": 30
-      }
+      "use": "@vercel/python"
     }
   ],
   "rewrites": [
@@ -13,6 +10,5 @@
       "source": "/api/(.*)",
       "destination": "/api/index.py"
     }
-  ],
-  "outputDirectory": "frontend"
+  ]
 }

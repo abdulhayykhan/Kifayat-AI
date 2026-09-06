@@ -1,0 +1,211 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+
+:root {
+    --ink: #14221e;
+    --cream: #f6f1e7;
+    --orange: #e46335;
+    --green: #34745b;
+    --line: #d9d1c2;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', Arial, sans-serif;
+}
+
+main {
+    max-width: 1120px;
+    margin: auto;
+    padding: 28px 32px 64px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.eyebrow {
+    font: 11px 'DM Mono', monospace;
+    letter-spacing: .11em;
+    color: #66736a;
+    margin: 0 0 8px;
+}
+
+h1, h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    margin: 0;
+}
+
+h1 { font-size: 32px; }
+h1 em { color: var(--orange); }
+h2 { font-size: 34px; line-height: 1.08; }
+
+.badge {
+    font: 11px 'DM Mono', monospace;
+    background: #dbece1;
+    color: #256143;
+    border-radius: 30px;
+    padding: 9px 12px;
+    white-space: nowrap;
+}
+
+.hero {
+    padding: 70px 0 45px;
+    max-width: 680px;
+}
+
+.hero h2 {
+    font-size: 62px;
+    letter-spacing: -2px;
+}
+
+.hero h2 i { color: var(--orange); }
+
+.hero > p:last-child {
+    color: #526057;
+    font-size: 18px;
+    line-height: 1.6;
+    max-width: 570px;
+}
+
+.chat {
+    background: var(--ink);
+    padding: 27px;
+    border-radius: 5px;
+    box-shadow: 8px 8px 0 #d2c7b4;
+}
+
+.messages { min-height: 55px; }
+
+.bubble {
+    width: fit-content;
+    max-width: 85%;
+    padding: 13px 16px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    line-height: 1.45;
+}
+
+.assistant { background: #e9e3d6; color: var(--ink); }
+.user { background: var(--orange); color: #fff; margin-left: auto; }
+
+.answer strong { display: block; font-size: 17px; margin-bottom: 3px; }
+.answer small { color: #627269; }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0; }
+
+.chips button {
+    background: #263832;
+    color: #dce7dd;
+    border: 1px solid #536960;
+    padding: 8px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.chips button:hover { background: #34745b; }
+
+form { display: flex; gap: 10px; }
+
+input {
+    flex: 1;
+    background: #fffdf8;
+    border: 0;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 2px;
+}
+
+form button {
+    background: var(--orange);
+    border: 0;
+    color: white;
+    font-weight: bold;
+    padding: 0 20px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+form button:hover { background: #c9522a; }
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin: 75px 0 22px;
+}
+
+.section-title h2 { font-size: 36px; }
+.section-title span, small { font: 11px 'DM Mono', monospace; color: #68736c; }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 20px;
+}
+
+.card h3 {
+    font: 500 16px 'DM Sans', sans-serif;
+    margin: 0 0 8px;
+    color: #526057;
+}
+
+.card .price {
+    font: 700 28px 'Playfair Display', Georgia, serif;
+    margin-bottom: 6px;
+}
+
+.card .change {
+    font: 12px 'DM Mono', monospace;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.change.up { color: #b33a2a; }
+.change.down { color: var(--green); }
+.change.flat { color: #68736c; }
+
+footer {
+    text-align: center;
+    padding: 24px;
+    font: 12px 'DM Mono', monospace;
+    color: #68736c;
+    border-top: 1px solid var(--line);
+    margin-top: 40px;
+}
+
+@media (max-width: 900px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .hero h2 { font-size: 42px; }
+    .section-title h2 { font-size: 28px; }
+}
+
+@media (max-width: 600px) {
+    main { padding: 16px; }
+    .grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; }
+    .hero { padding: 40px 0 24px; }
+    .hero h2 { font-size: 32px; letter-spacing: -1px; }
+    h2 { font-size: 26px; }
+    .section-title { flex-direction: column; align-items: flex-start; gap: 8px; margin: 40px 0 16px; }
+    .chat { padding: 16px; }
+    .bubble { max-width: 95%; }
+    form { flex-direction: column; }
+    form button { width: 100%; padding: 12px; }
+}
