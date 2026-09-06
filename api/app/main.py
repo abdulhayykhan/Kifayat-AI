@@ -45,20 +45,21 @@ def _init_db():
     if IS_VERCEL:
         db = SessionLocal()
         try:
-            meta = db.get(DatasetMeta, 1)
+            meta_row = db.get(DatasetMeta, 1)
             path = download_latest()
             records = parse_annexure(path)
             for record in records:
                 _upsert(db, record)
-            if not meta:
-                meta = DatasetMeta(id=1)
-            meta.source = "live"
-            meta.week_ending = records[0]["week_ending"]
-            meta.updated_at = datetime.now(timezone.utc)
-            db.merge(meta)
+            if not meta_row:
+                meta_row = DatasetMeta(id=1)
+            meta_row.source = "live"
+            meta_row.week_ending = records[0]["week_ending"]
+            meta_row.updated_at = datetime.now(timezone.utc)
+            db.merge(meta_row)
             db.commit()
-        except Exception:
-            pass
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning("Live PBS fetch failed: %s", exc)
         finally:
             db.close()
 
