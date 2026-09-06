@@ -27,7 +27,7 @@ class QueryRequest(BaseModel):
 
 
 def _init_db():
-    """Create tables and seed fallback data. Safe to call multiple times."""
+    """Create tables, seed fallback, then try live PBS fetch."""
     global _initialized
     if _initialized:
         return
@@ -43,25 +43,10 @@ def _init_db():
         db.close()
 
     if IS_VERCEL:
-        db = SessionLocal()
         try:
-            meta_row = db.get(DatasetMeta, 1)
-            path = download_latest()
-            records = parse_annexure(path)
-            for record in records:
-                _upsert(db, record)
-            if not meta_row:
-                meta_row = DatasetMeta(id=1)
-            meta_row.source = "live"
-            meta_row.week_ending = records[0]["week_ending"]
-            meta_row.updated_at = datetime.now(timezone.utc)
-            db.merge(meta_row)
-            db.commit()
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning("Live PBS fetch failed: %s", exc)
-        finally:
-            db.close()
+            refresh()
+        except Exception:
+            pass
 
     _initialized = True
 
@@ -139,18 +124,6 @@ def meta(db: Session) -> dict:
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
-
-
-@app.get("/api/debug/pbs")
-def debug_pbs():
-    if not IS_VERCEL:
-        return {"error": "debug only on Vercel"}
-    try:
-        from .ingestion.discover import discover_latest
-        url, report, week = discover_latest()
-        return {"url": url, "report": report, "week": str(week)}
-    except Exception as exc:
-        return {"error": str(exc)}
 
 
 @app.get("/api/meta")
