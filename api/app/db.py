@@ -5,7 +5,12 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 IN_MEMORY = os.getenv("KIFAYAT_IN_MEMORY", "").lower() in ("1", "true", "yes")
 
 if IN_MEMORY:
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False})
+    from sqlalchemy.pool import StaticPool
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
 else:
     from .config import DB_PATH
     engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})

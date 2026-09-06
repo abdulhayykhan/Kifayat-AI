@@ -28,7 +28,8 @@ def test_roman_urdu_matches_common_queries():
 @pytest.fixture
 def client():
     from app.main import app
-    return TestClient(app)
+    with TestClient(app) as c:
+        yield c
 
 
 def test_health(client):
