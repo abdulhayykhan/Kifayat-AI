@@ -1,4 +1,7 @@
-from datetime import UTC, date, datetime
+from __future__ import annotations
+
+from datetime import date, datetime, timezone
+from typing import Optional
 from sqlalchemy import Date, DateTime, Float, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from .db import Base
@@ -17,5 +20,5 @@ class DatasetMeta(Base):
     __tablename__ = "dataset_meta"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     source: Mapped[str] = mapped_column(String, default="fallback_cached")
-    week_ending: Mapped[date | None] = mapped_column(Date, nullable=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    week_ending: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))

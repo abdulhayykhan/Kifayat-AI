@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -35,7 +38,7 @@ def _init_db():
     _initialized = True
 
 
-def refresh(db: Session | None = None) -> dict:
+def refresh(db: Optional[Session] = None) -> dict:
     own_session = db is None
     if own_session:
         db = SessionLocal()
@@ -48,7 +51,7 @@ def refresh(db: Session | None = None) -> dict:
             meta = db.get(DatasetMeta, 1) or DatasetMeta(id=1)
             meta.source = "live"
             meta.week_ending = records[0]["week_ending"]
-            meta.updated_at = datetime.now(UTC)
+            meta.updated_at = datetime.now(timezone.utc)
             db.merge(meta)
             db.commit()
             return {"source": "live", "records": len(records)}
@@ -214,7 +217,7 @@ async def upload(file: UploadFile = File(...), db: Session = Depends(get_db)):
     state = db.get(DatasetMeta, 1) or DatasetMeta(id=1)
     state.source = "manual_upload"
     state.week_ending = record["week_ending"]
-    state.updated_at = datetime.now(UTC)
+    state.updated_at = datetime.now(timezone.utc)
     db.merge(state)
     db.commit()
     return {"source": "manual_upload", "records": len(records), "meta": meta(db)}

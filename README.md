@@ -1,12 +1,12 @@
 # Kifayat AI
 
 ```text
-██╗  ██╗██╗███████╗ █████╗ ██╗   ██╗ █████╗ ████████╗
-██║ ██╔╝██║██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗╚══██╔══╝
-█████╔╝ ██║█████╗  ███████║ ╚████╔╝ ███████║   ██║
-██╔═██╗ ██║██╔══╝  ██╔══██║  ╚██╔╝  ██╔══██║   ██║
-██║  ██╗██║██║     ██║  ██║   ██║   ██║  ██║   ██║
-╚═╝  ╚═╝╚═╝╚═╝     ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝
+	██╗  ██╗██╗███████╗ █████╗ ██╗   ██╗ █████╗ ████████╗
+	██║ ██╔╝██║██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗╚══██╔══╝
+	█████╔╝ ██║█████╗  ███████║ ╚████╔╝ ███████║   ██║
+	██╔═██╗ ██║██╔══╝  ██╔══██║  ╚██╔╝  ██╔══██║   ██║
+	██║  ██╗██║██║     ██║  ██║   ██║   ██║  ██║   ██║
+	╚═╝  ╚═╝╚═╝╚═╝     ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝
         A Karachi Kitchen-Budget Price Companion, in Roman Urdu
 ```
 
@@ -17,10 +17,6 @@
 ![Data Source](https://img.shields.io/badge/Data-Pakistan%20Bureau%20of%20Statistics-2E8B57?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-hackathon--demo--candidate-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-
----
-
-> **Read this before demoing this to anyone:** this README documents the project's real, tested, current state — not an aspirational one. Every claim below was checked directly against the actual code and the actual bundled data before being written down. See [Current Status & Known Gaps](#-current-status--known-gaps) before a judging round, and [Data Source Verification](#-data-source-verification) before repeating any specific number about the underlying government dataset out loud.
 
 ---
 
@@ -76,11 +72,11 @@ Today, a small *dhaba* operator or home-chef finds out flour or cooking oil got 
 ## 🏗️ Architecture
 
 ```text
-┌──────────────────┐      ┌───────────────────────────┐      ┌────────────────┐
-│  Frontend (SPA)   │─────▶│  FastAPI Backend           │─────▶│  SQLite DB      │
-│  HTML/CSS/JS      │◀─────│  ingestion · volatility ·  │◀─────│  prices + meta  │
-│  no build step    │      │  Roman Urdu NLU · scheduler│      └────────────────┘
-└──────────────────┘      └───────────────────────────┘
+┌──────────────────┐       ┌───────────────────────────┐       ┌────────────────┐
+│  Frontend (SPA)  │─────▶│  FastAPI Backend           │─────▶│  SQLite DB     │
+│  HTML/CSS/JS     │◀─────│  ingestion · volatility ·  │◀─────│  prices + meta │
+│  no build step   │       │  Roman Urdu NLU · scheduler│      └────────────────┘
+└──────────────────┘       └───────────────────────────┘
                                        │
                                        ▼
                      Pakistan Bureau of Statistics

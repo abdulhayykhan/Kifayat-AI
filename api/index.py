@@ -11,6 +11,14 @@ os.environ.setdefault("KIFAYAT_IN_MEMORY", "1")
 os.environ.setdefault("KIFAYAT_CORS_ORIGINS", "*")
 
 _root = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(_root / "backend"))
+_backend = _root / "backend"
+
+# Add backend to path so `app.*` imports resolve
+if str(_backend) not in sys.path:
+    sys.path.insert(0, str(_backend))
+
+# Also add project root for absolute imports
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 
 from app.main import app  # noqa: E402

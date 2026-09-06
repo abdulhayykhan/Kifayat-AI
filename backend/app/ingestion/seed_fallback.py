@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import func, select
@@ -62,7 +62,7 @@ def seed_fallback(db) -> int:
     meta = db.get(DatasetMeta, 1) or DatasetMeta(id=1)
     meta.source = "fallback_cached"
     meta.week_ending = latest_week
-    meta.updated_at = datetime.now(UTC)
+    meta.updated_at = datetime.now(timezone.utc)
     db.merge(meta)
     db.commit()
     return db.scalar(select(func.count(Price.id))) or 0
