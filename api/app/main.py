@@ -141,6 +141,18 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/api/debug/pbs")
+def debug_pbs():
+    if not IS_VERCEL:
+        return {"error": "debug only on Vercel"}
+    try:
+        from .ingestion.discover import discover_latest
+        url, report, week = discover_latest()
+        return {"url": url, "report": report, "week": str(week)}
+    except Exception as exc:
+        return {"error": str(exc)}
+
+
 @app.get("/api/meta")
 def get_meta(db: Session = Depends(get_db)):
     if IS_VERCEL:
