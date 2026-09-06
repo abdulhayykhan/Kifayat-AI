@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.db
+*.zip
+.git/
+.vscode/
+backend/data/history/

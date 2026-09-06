@@ -1,0 +1,1 @@
+"""Kifayat AI application package."""
